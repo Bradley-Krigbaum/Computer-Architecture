@@ -85,6 +85,7 @@ class CPU:
 
 
     def exe_instruction(self, IR, operand_a, operand_b):
+        """Run the instructions"""
         if IR == HLT:
             print("HLT: TRUE...\nEXITING...")
             self.hlt = True
