@@ -83,7 +83,8 @@ class CPU:
             operand_b = self.ram_read( self.pc + 2 )
             self.exe_instruction(IR, operand_a, operand_b)
 
-
+    # executes the instructions given, takes the instruction register
+    # and the next two line of machine code to operate
     def exe_instruction(self, IR, operand_a, operand_b):
         """Run the instructions"""
         if IR == HLT:
