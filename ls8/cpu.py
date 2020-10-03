@@ -2,6 +2,10 @@
 
 import sys
 
+HLT = 0b00000001
+LDI = 0b10000010
+PRN = 0b01000111
+
 class CPU:
     """Main CPU class."""
 
@@ -11,13 +15,14 @@ class CPU:
         self.pc = 0
         self.ram = [0] * 256
         self.reg = [0] * 8
+        self.reg[7] = 0xF4
+        self.hlt = False
 
     def ram_read(self, address):
         return self.ram[address]
 
     def ram_write(self, value, address):
-        self.ram[address] += value
-        return self.ram[address]
+        self.ram[address] = value
 
     def load(self):
         """Load a program into memory."""
@@ -72,27 +77,24 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        operand_a = self.ram_read( self.pc + 1 )
-        operand_b = self.ram_read( self.pc + 2 )
-        running = True
+        while not self.hlt:
+            IR = self.ram_read(self.pc)
+            operand_a = self.ram_read( self.pc + 1 )
+            operand_b = self.ram_read( self.pc + 2 )
+            self.exe_instruction(IR, operand_a, operand_b)
 
-        while running:
-            IR = self.ram[self.pc]
-           
-            if IR == 0b00000001:
-                print("EXITING...")
-                running = False
-                sys.exit(1)
-            elif IR == 0b10000010:
-                print("LDI...")
-                value_reg = operand_b
-                operand_a = value_reg
-                self.pc += 3
-            elif IR == 0b01000111:
-                print("PRN...")
-                print( "PRN REG:    ", operand_a )
-                print( "PRN REG DECIMAL:    ", IR)
-                self.pc += 2
-            else:
-                print("INVALID COMMAND... EXITING...")
-                continue
+
+    def exe_instruction(self, IR, operand_a, operand_b):
+        if IR == HLT:
+            print("HLT: TRUE...\nEXITING...")
+            self.hlt = True
+        elif IR == LDI:
+            print("LDI...")
+            self.reg[operand_a] = operand_b
+            self.pc += 3
+        elif IR == PRN:
+            print( "PRN REG:    ", self.reg[operand_a] )
+            self.pc += 2
+        else:
+            print("INVALID COMMAND... EXITING...")
+            sys.exit(1)
