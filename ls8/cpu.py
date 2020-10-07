@@ -5,6 +5,7 @@ import sys
 HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
+MUL = 0b10100010
 
 class CPU:
     """Main CPU class."""
@@ -24,26 +25,23 @@ class CPU:
     def ram_write(self, value, address):
         self.ram[address] = value
 
-    def load(self):
+    def load(self, filename):
         """Load a program into memory."""
+        print("LOADING...")
 
         address = 0
 
-        # For now, we've just hardcoded a program:
+        with open(filename) as file_pointer:
+            for line in file_pointer:
+                line_split = line.split("#")
+                num = line_split[0].strip()
+                if num == '':
+                    continue
+                value = int(num, 2)
+                self.ram_write(value, address)
+                address += 1
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        print("LOADING COMPLETE")
 
 
     def alu(self, op, reg_a, reg_b):
@@ -87,8 +85,9 @@ class CPU:
     # and the next two line of machine code to operate
     def exe_instruction(self, IR, operand_a, operand_b):
         """Run the instructions"""
+        print("EXECUTING INSTRUCTIONS...")
         if IR == HLT:
-            print("HLT: TRUE...\nEXITING...")
+            print("HLT: TRUE\nEXITING...")
             self.hlt = True
         elif IR == LDI:
             print("LDI...")
@@ -97,6 +96,26 @@ class CPU:
         elif IR == PRN:
             print( "PRN REG:    ", self.reg[operand_a] )
             self.pc += 2
+        elif IR == MUL:
+            print("MUL...")
+            mul_value = self.reg[operand_a] * self.reg[operand_b]
+            self.reg[operand_a] = mul_value
+            self.pc += 3
         else:
             print("INVALID COMMAND... EXITING...")
             sys.exit(1)
+
+"""
+        elif IR == PUSH:
+            reg[SP] -= 1
+            reg_to_get_value_in = memory[pc + 1]
+            value_in_register = reg[reg_to_get_value_in]
+            memory[reg[SP]] = value_in_register
+            pc += 2
+        elif IR == POP:
+            top_value_in_stack = memory[reg[SP]]
+            reg_to_store_in = memory[pc + 1]
+            reg[reg_to_store_in] = top_value_in_stack
+            reg[SP += 1]
+            pc += 2
+"""
