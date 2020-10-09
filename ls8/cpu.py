@@ -6,6 +6,10 @@ HLT = 0b00000001
 LDI = 0b10000010
 PRN = 0b01000111
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
+ADD = 0b11111110
+SUB = 0b11111111
 
 class CPU:
     """Main CPU class."""
@@ -18,6 +22,8 @@ class CPU:
         self.reg = [0] * 8
         self.reg[7] = 0xF4
         self.hlt = False
+
+        self.SP = self.reg[7]
 
     def ram_read(self, address):
         return self.ram[address]
@@ -46,10 +52,17 @@ class CPU:
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
-
-        if op == "ADD":
+       
+        if op == 'ADD':
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+            print('ALU OPERATION: ADD... COMPLETE')
+        elif op == 'SUB':
+            self.reg[reg_a] -= self.reg[reg_b]
+            print('ALU OPERATION: SUB... COMPLETE')
+        elif op == 'MUL':
+            mul_value = self.reg[reg_a] * self.reg[reg_b]
+            self.reg[reg_a] = mul_value
+            print('ALU OPERATION: MUL... COMPLETE')
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -98,24 +111,19 @@ class CPU:
             self.pc += 2
         elif IR == MUL:
             print("MUL...")
-            mul_value = self.reg[operand_a] * self.reg[operand_b]
-            self.reg[operand_a] = mul_value
+            self.alu('MUL', operand_a, operand_b)
             self.pc += 3
-        else:
-            print("INVALID COMMAND... EXITING...")
-            sys.exit(1)
-
-"""
         elif IR == PUSH:
-            reg[SP] -= 1
-            reg_to_get_value_in = memory[pc + 1]
-            value_in_register = reg[reg_to_get_value_in]
-            memory[reg[SP]] = value_in_register
-            pc += 2
+            print('PUSH...')
+            self.SP -= 1
+            reg_value = self.reg[operand_a]
+            print('PUSHING: ', reg_value)
+            self.ram_write(reg_value, self.SP)
+            self.pc += 2
         elif IR == POP:
-            top_value_in_stack = memory[reg[SP]]
-            reg_to_store_in = memory[pc + 1]
-            reg[reg_to_store_in] = top_value_in_stack
-            reg[SP += 1]
-            pc += 2
-"""
+            print('POP...')
+            top_value = self.ram_read(self.SP)
+            print('POPPING: ', top_value)
+            self.reg[operand_a] = top_value
+            self.SP += 1
+            self.pc += 2
